@@ -254,6 +254,7 @@ const PhaseViewer = () => {
               )}
             </div>
           ))}
+        </div>
       </div>
 
       {/* Bottom scroll hint */}
