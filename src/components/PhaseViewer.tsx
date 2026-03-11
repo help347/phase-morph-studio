@@ -188,41 +188,72 @@ const PhaseViewer = () => {
       )}
 
       {/* Vertical timeline - right side */}
-      <div className="absolute right-3 md:right-6 top-1/2 -translate-y-1/2 z-10 flex flex-col items-center gap-1">
-        {phases.map((phase, i) => (
-          <button
-            key={i}
-            onClick={() => goTo(i)}
-            className="group relative flex items-center"
-          >
-            {/* Connector line */}
-            {i < phases.length - 1 && (
-              <div
-                className="absolute top-full left-1/2 -translate-x-1/2 w-[2px] h-4 md:h-6"
-                style={{
-                  background:
-                    i < currentIndex
-                      ? "hsl(var(--primary))"
-                      : "hsl(var(--muted))",
-                }}
-              />
-            )}
-            {/* Dot */}
-            <div
-              className={`w-3 h-3 md:w-4 md:h-4 rounded-full border-2 transition-all duration-300 ${
-                i === currentIndex
-                  ? "border-primary bg-primary phase-glow scale-125"
-                  : i < currentIndex
-                  ? "border-primary bg-primary/40"
-                  : "border-muted-foreground/40 bg-transparent"
-              }`}
-            />
-            {/* Hover label */}
-            <span className="absolute right-6 md:right-8 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity text-xs md:text-sm bg-background/80 backdrop-blur-sm text-foreground px-2 py-1 rounded border border-border pointer-events-none">
-              {phase.label}
-            </span>
-          </button>
-        ))}
+      <div className="absolute right-4 md:right-8 top-1/2 -translate-y-1/2 z-10">
+        <div className="bg-background/40 backdrop-blur-xl rounded-2xl border border-border/40 px-3 py-4 md:px-4 md:py-6 flex flex-col items-center">
+          {phases.map((phase, i) => (
+            <div key={i} className="flex flex-col items-center">
+              <button
+                onClick={() => goTo(i)}
+                className="group relative flex items-center gap-3 cursor-pointer"
+              >
+                {/* Dot with ring */}
+                <div className="relative">
+                  <div
+                    className={`w-3.5 h-3.5 md:w-4 md:h-4 rounded-full transition-all duration-500 ${
+                      i === currentIndex
+                        ? "bg-primary phase-glow scale-110"
+                        : i < currentIndex
+                        ? "bg-primary/70"
+                        : "bg-muted-foreground/25"
+                    }`}
+                  />
+                  {i === currentIndex && (
+                    <div className="absolute -inset-1.5 rounded-full border border-primary/40 animate-pulse" />
+                  )}
+                </div>
+
+                {/* Label - always visible on desktop, hover on mobile */}
+                <div
+                  className={`absolute right-8 md:right-10 whitespace-nowrap transition-all duration-300 ${
+                    i === currentIndex
+                      ? "opacity-100 translate-x-0"
+                      : "opacity-0 md:group-hover:opacity-100 translate-x-2 md:group-hover:translate-x-0"
+                  }`}
+                >
+                  <div className="bg-background/70 backdrop-blur-md rounded-lg px-3 py-1.5 border border-border/50 flex items-center gap-2">
+                    <span
+                      className={`text-[10px] font-mono tracking-wider uppercase ${
+                        i === currentIndex ? "text-primary" : "text-muted-foreground"
+                      }`}
+                    >
+                      {String(i + 1).padStart(2, "0")}
+                    </span>
+                    <span className="w-px h-3 bg-border/60" />
+                    <span
+                      className={`text-xs md:text-sm font-medium ${
+                        i === currentIndex ? "text-foreground" : "text-muted-foreground"
+                      }`}
+                    >
+                      {phase.label}
+                    </span>
+                  </div>
+                </div>
+              </button>
+
+              {/* Connector */}
+              {i < phases.length - 1 && (
+                <div className="relative w-[2px] h-6 md:h-8 my-1">
+                  <div className="absolute inset-0 bg-muted-foreground/15 rounded-full" />
+                  <div
+                    className="absolute top-0 left-0 w-full rounded-full transition-all duration-700 bg-primary"
+                    style={{
+                      height: i < currentIndex ? "100%" : "0%",
+                    }}
+                  />
+                </div>
+              )}
+            </div>
+          ))}
       </div>
 
       {/* Bottom scroll hint */}
