@@ -1,9 +1,10 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { Upload, Loader2 } from "lucide-react";
-import phase1 from "@/assets/phase1.jpg";
-import phase2 from "@/assets/phase2.jpg";
-import phase3 from "@/assets/phase3.jpg";
-import phase4 from "@/assets/phase4.jpg";
+import phase1 from "@/assets/image1.jpeg";
+import phase2 from "@/assets/image2.jpeg";
+import phase3 from "@/assets/image3.jpeg";
+import logo from "@/assets/elev.jpeg";
+
 
 interface Phase {
   src: string;
@@ -11,10 +12,9 @@ interface Phase {
 }
 
 const defaultPhases: Phase[] = [
-  { src: phase1, label: "Site Preparation" },
-  { src: phase2, label: "Foundation" },
-  { src: phase3, label: "Structural Framing" },
-  { src: phase4, label: "Completed" },
+  { src: phase1, label: "Floor and glass work started" },
+  { src: phase2, label: "Glass, floor and ceiling work done" },
+  { src: phase3, label: "Major works completed, finishing works area balancing" },
 ];
 
 const PhaseViewer = () => {
@@ -140,14 +140,16 @@ const PhaseViewer = () => {
 
       {/* Top bar */}
       <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between p-4 md:p-6">
-        <h1 className="text-lg md:text-2xl font-bold tracking-tight text-shadow-heavy text-foreground font-['Space_Grotesk']">
-          Construction Timeline
-        </h1>
-        <label className="cursor-pointer flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 rounded-lg bg-secondary/80 backdrop-blur-sm border border-border hover:bg-secondary transition text-sm text-secondary-foreground">
+        <img
+          src={logo}
+          alt="Elev"
+          className="w-35 h-10 md:w-30 md:h-20 lg:w-40 lg:h-18 rounded-lg flex-shrink-0"
+        />
+        {/* <label className="cursor-pointer flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 rounded-lg bg-secondary/80 backdrop-blur-sm border border-border hover:bg-secondary transition text-sm text-secondary-foreground">
           <Upload size={16} />
           <span className="hidden sm:inline">Upload</span>
           <input type="file" accept="image/*,.pdf" multiple className="hidden" onChange={handleUpload} />
-        </label>
+        </label> */}
       </div>
 
       {/* Phase info - bottom left */}
@@ -199,13 +201,12 @@ const PhaseViewer = () => {
                 {/* Dot with ring */}
                 <div className="relative">
                   <div
-                    className={`w-3.5 h-3.5 md:w-4 md:h-4 rounded-full transition-all duration-500 ${
-                      i === currentIndex
+                    className={`w-3.5 h-3.5 md:w-4 md:h-4 rounded-full transition-all duration-500 ${i === currentIndex
                         ? "bg-primary phase-glow scale-110"
                         : i < currentIndex
-                        ? "bg-primary/70"
-                        : "bg-muted-foreground/25"
-                    }`}
+                          ? "bg-primary/70"
+                          : "bg-muted-foreground/25"
+                      }`}
                   />
                   {i === currentIndex && (
                     <div className="absolute -inset-1.5 rounded-full border border-primary/40 animate-pulse" />
@@ -214,25 +215,22 @@ const PhaseViewer = () => {
 
                 {/* Label - always visible on desktop, hover on mobile */}
                 <div
-                  className={`absolute right-8 md:right-10 whitespace-nowrap transition-all duration-300 ${
-                    i === currentIndex
+                  className={`absolute right-8 md:right-10 whitespace-nowrap transition-all duration-300 ${i === currentIndex
                       ? "opacity-100 translate-x-0"
                       : "opacity-0 md:group-hover:opacity-100 translate-x-2 md:group-hover:translate-x-0"
-                  }`}
+                    }`}
                 >
                   <div className="bg-background/70 backdrop-blur-md rounded-lg px-3 py-1.5 border border-border/50 flex items-center gap-2">
                     <span
-                      className={`text-[10px] font-mono tracking-wider uppercase ${
-                        i === currentIndex ? "text-primary" : "text-muted-foreground"
-                      }`}
+                      className={`text-[10px] font-mono tracking-wider uppercase ${i === currentIndex ? "text-primary" : "text-muted-foreground"
+                        }`}
                     >
                       {String(i + 1).padStart(2, "0")}
                     </span>
                     <span className="w-px h-3 bg-border/60" />
                     <span
-                      className={`text-xs md:text-sm font-medium ${
-                        i === currentIndex ? "text-foreground" : "text-muted-foreground"
-                      }`}
+                      className={`text-xs md:text-sm font-medium ${i === currentIndex ? "text-foreground" : "text-muted-foreground"
+                        }`}
                     >
                       {phase.label}
                     </span>
@@ -258,7 +256,7 @@ const PhaseViewer = () => {
       </div>
 
       {/* Bottom scroll hint */}
-      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 text-muted-foreground text-xs font-mono tracking-wider opacity-60">
+      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10  text-xs font-mono tracking-wider opacity-60">
         <span className="hidden md:inline">Scroll or use arrow keys</span>
         <span className="md:hidden">Swipe to navigate</span>
       </div>
