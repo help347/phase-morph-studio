@@ -22,19 +22,35 @@ const PhaseViewer = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [showUI, setShowUI] = useState(true);
   const containerRef = useRef<HTMLDivElement>(null);
   const touchStartRef = useRef<{ x: number; y: number } | null>(null);
   const lastScrollRef = useRef(0);
+  const hideTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Reset hide timer
+  const resetHideTimer = useCallback(() => {
+    setShowUI(true);
+    if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
+    hideTimerRef.current = setTimeout(() => {
+      setShowUI(false);
+    }, 5000);
+  }, []);
 
   const goTo = useCallback(
     (index: number) => {
       if (index < 0 || index >= phases.length || index === currentIndex || isTransitioning) return;
       setIsTransitioning(true);
       setCurrentIndex(index);
-      setProgress(index / (phases.length - 1));
+      
+      // Calculate progress percentages: 40%, 60%, 75%
+      const percentages = [40, 60, 75];
+      setProgress(percentages[index] / 100);
+      
+      resetHideTimer();
       setTimeout(() => setIsTransitioning(false), 800);
     },
-    [currentIndex, isTransitioning, phases.length]
+    [currentIndex, isTransitioning, phases.length, resetHideTimer]
   );
 
   const goNext = useCallback(() => goTo(currentIndex + 1), [currentIndex, goTo]);
@@ -98,6 +114,31 @@ const PhaseViewer = () => {
     return () => window.removeEventListener("keydown", handler);
   }, [goNext, goPrev]);
 
+  // Initialize hide timer
+  useEffect(() => {
+    resetHideTimer();
+    return () => {
+      if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
+    };
+  }, [resetHideTimer]);
+
+  // Toggle UI visibility on click
+  const handleContainerClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    // Don't toggle if clicking on timeline or buttons
+    const target = e.target as HTMLElement;
+    if (target.closest('button') || target.closest('[role="button"]')) return;
+    
+    setShowUI((prev) => !prev);
+    if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
+    
+    // If turning UI on, set timer to hide it after 5 seconds
+    if (!showUI) {
+      hideTimerRef.current = setTimeout(() => {
+        setShowUI(false);
+      }, 5000);
+    }
+  }, [showUI]);
+
   const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files) return;
@@ -112,7 +153,8 @@ const PhaseViewer = () => {
   return (
     <div
       ref={containerRef}
-      className="relative w-full h-screen overflow-hidden select-none"
+      onClick={handleContainerClick}
+      className="relative w-full h-screen overflow-hidden select-none cursor-pointer"
       style={{ background: "hsl(var(--overlay-dark))" }}
     >
       {/* Images stack */}
@@ -156,25 +198,26 @@ const PhaseViewer = () => {
       <div
         className="absolute bottom-16 md:bottom-12 left-4 md:left-8 z-10 transition-all duration-500"
         style={{
-          opacity: isTransitioning ? 0 : 1,
-          transform: isTransitioning ? "translateY(20px)" : "translateY(0)",
+          opacity: (showUI && !isTransitioning) ? 1 : 0,
+          transform: (showUI && !isTransitioning) ? "translateY(0)" : "translateY(20px)",
+          pointerEvents: showUI ? "auto" : "none",
         }}
       >
-        <div className="bg-background/60 backdrop-blur-md rounded-xl px-4 py-3 md:px-6 md:py-4 border border-border/50">
-          <p className="text-xs md:text-sm font-mono text-primary tracking-widest uppercase">
+        <div className="bg-background/60 backdrop-blur-md rounded-xl px-3 py-2 md:px-6 md:py-4 border border-border/50 max-w-xs md:max-w-md">
+          <p className="text-[10px] md:text-sm font-mono text-primary tracking-widest uppercase">
             Phase {currentIndex + 1} / {phases.length}
           </p>
-          <h2 className="text-xl md:text-3xl font-bold text-foreground mt-1 text-shadow-heavy">
+          <h2 className="text-sm md:text-3xl font-bold text-foreground mt-1 text-shadow-heavy leading-tight">
             {phases[currentIndex].label}
           </h2>
           <div className="flex items-center gap-2 mt-2">
-            <div className="h-1 w-24 md:w-40 rounded-full bg-muted overflow-hidden">
+            <div className="h-1 w-16 md:w-40 rounded-full bg-muted overflow-hidden">
               <div
                 className="h-full bg-primary rounded-full transition-all duration-700"
-                style={{ width: `${(progress) * 100}%` }}
+                style={{ width: `${progress * 100}%` }}
               />
             </div>
-            <span className="text-xs text-muted-foreground font-mono">
+            <span className="text-[10px] md:text-xs text-muted-foreground font-mono whitespace-nowrap">
               {Math.round(progress * 100)}%
             </span>
           </div>
@@ -190,7 +233,14 @@ const PhaseViewer = () => {
       )}
 
       {/* Vertical timeline - right side */}
-      <div className="absolute right-4 md:right-8 top-1/2 -translate-y-1/2 z-10">
+      <div
+        className="absolute right-4 md:right-8 top-1/2 -translate-y-1/2 z-10 transition-all duration-500"
+        style={{
+          opacity: showUI ? 1 : 0,
+          transform: showUI ? "translateX(0)" : "translateX(100px)",
+          pointerEvents: showUI ? "auto" : "none",
+        }}
+      >
         <div className="bg-background/40 backdrop-blur-xl rounded-2xl border border-border/40 px-3 py-4 md:px-4 md:py-6 flex flex-col items-center">
           {phases.map((phase, i) => (
             <div key={i} className="flex flex-col items-center">
@@ -220,14 +270,7 @@ const PhaseViewer = () => {
                       : "opacity-0 md:group-hover:opacity-100 translate-x-2 md:group-hover:translate-x-0"
                     }`}
                 >
-                  <div className="bg-background/70 backdrop-blur-md rounded-lg px-3 py-1.5 border border-border/50 flex items-center gap-2">
-                    <span
-                      className={`text-[10px] font-mono tracking-wider uppercase ${i === currentIndex ? "text-primary" : "text-muted-foreground"
-                        }`}
-                    >
-                      {String(i + 1).padStart(2, "0")}
-                    </span>
-                    <span className="w-px h-3 bg-border/60" />
+                  <div className="bg-background/70 backdrop-blur-md rounded-lg px-3 py-1.5 border border-border/50">
                     <span
                       className={`text-xs md:text-sm font-medium ${i === currentIndex ? "text-foreground" : "text-muted-foreground"
                         }`}
@@ -256,7 +299,13 @@ const PhaseViewer = () => {
       </div>
 
       {/* Bottom scroll hint */}
-      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10  text-xs font-mono tracking-wider opacity-60">
+      <div
+        className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 text-xs font-mono tracking-wider opacity-60 transition-all duration-500"
+        style={{
+          opacity: showUI ? 0.6 : 0,
+          pointerEvents: showUI ? "auto" : "none",
+        }}
+      >
         <span className="hidden md:inline">Scroll or use arrow keys</span>
         <span className="md:hidden">Swipe to navigate</span>
       </div>
